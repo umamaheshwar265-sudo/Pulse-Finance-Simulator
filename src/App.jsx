@@ -4,6 +4,8 @@ import './App.css'
 
 import SectionHeading from './components/SectionHeading'
 
+import Overview from './components/dashboard/Overview'
+
 import { money, dayLabel } from './utils/formatters'
 
 
@@ -156,7 +158,7 @@ function makeId(prefix = 'item') {
 function csvCell(value) {
    const text = String(value ?? '')
    // Prefix formula-like text so spreadsheet software won't execute user input.
-   const safeText = /^[\s]*[=+@\-]/.test(text) ? `'${text}` : text
+   const safeText = /^[\s]*[=+-@]/.test(text) ? `'${text}` : text
    return `"${safeText.replace(/"/g, '""')}"`
 }
 
@@ -259,10 +261,11 @@ export default function App() {
    const daily = Math.max(0, available / remainingDays)
    const projected = remaining - unpaidBills
    const spentPercent = Math.min(100, Math.max(0, (spent / budget) * 100))
-   const monthLabel = useMemo(
-      () => new Intl.DateTimeFormat('en-IN', { month: 'long' }).format(new Date()).toUpperCase(),
-      [],
-   )
+  const [monthLabel] = useState(() =>
+  new Intl.DateTimeFormat('en-IN', { month: 'long' })
+    .format(new Date())
+    .toUpperCase()
+)
 
    const breakdown = useMemo(() => calculateCategoryBreakdown(expenses), [expenses])
 
@@ -303,13 +306,10 @@ export default function App() {
 
    // Keep every change in browser storage so deletes/additions survive refresh.
 
-   useEffect(() => {
-
-      // The app remains usable for this session if browser storage is unavailable.
-      writeSavedData({ expenses, bills, savings, goal, day })
-      setSaved(false)
-
-   }, [expenses, bills, savings, goal, day])
+  useEffect(() => {
+  // The app remains usable for this session if browser storage is unavailable.
+  writeSavedData({ expenses, bills, savings, goal, day })
+}, [expenses, bills, savings, goal, day])
 
 
    // Remember the selected appearance without changing finance-demo data.

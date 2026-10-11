@@ -85,4 +85,3 @@ https://github.com/umamaheshwar265-sudo/Pulse-Finance-Simulator
 
 ## License
 
-Add a license file if this project is intended to be distributed as open-source software.
