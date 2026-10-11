@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
+import SectionHeading from './components/SectionHeading'
+import { money, dayLabel } from './utils/formatters'
 
 const STORAGE_KEY = 'pulse-finance-v1'
 const initialExpenses = []
@@ -26,8 +28,7 @@ function readAccent() {
     return 'lime'
   }
 }
-const money = value => '₹' + Math.round(Number(value) || 0).toLocaleString('en-IN')
-const dayLabel = value => `Day ${value}`
+
 
 function readSavedData() {
   try {
@@ -40,6 +41,8 @@ function readSavedData() {
 
 export default function App() {
   const [page, setPage] = useState('Overview')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem('pulse-theme') === 'light' ? 'light' : 'dark'
@@ -196,12 +199,25 @@ export default function App() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
+        
+<button
+  type="button"
+  className="mobile-menu-toggle"
+  onClick={() => setMobileMenuOpen(open => !open)}
+  aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+  aria-expanded={mobileMenuOpen}
+>
+  {mobileMenuOpen ? '✕' : '☰'}
+</button>
+
         <a className="brand" href="#home" onClick={event => { event.preventDefault(); setPage('Overview') }}>
           <span className="brand-mark">p.</span>
           <span>PULSE<small>MONEY, IN MOTION</small></span>
         </a>
         <div className="side-label">YOUR SPACE</div>
-        <nav className="side-nav">
+        
+<nav className={`side-nav ${mobileMenuOpen ? 'is-open' : ''}`}>
+
           {nav.map(([name, icon]) => (
             <button key={name} className={page === name ? 'nav-item active' : 'nav-item'} onClick={() => setPage(name)}>
               <span className="nav-icon">{icon}</span>{name}
@@ -312,10 +328,15 @@ export default function App() {
                 <p>{Math.round(Math.min(100, savings / Math.max(1, goal) * 100))}% of your target</p>
               </div>
             </section>
-            <section className="section-heading">
-              <div><span className="section-index">01</span><h2>The money map</h2><p>See where your ₹10K is going.</p></div>
-              <button className="text-button" onClick={() => setPage('Transactions')}>All transactions ↗</button>
-            </section>
+            
+<SectionHeading
+  index="01"
+  title="The money map"
+  description="See where your ₹10K is going."
+  actionLabel="All transactions ↗"
+  onAction={() => setPage('Transactions')}
+/>
+
             <section className="analytics-grid">
               <div className="panel spending-panel">
                 <div className="panel-head"><div><h3>Spending breakdown</h3><p>Your money has a pattern.</p></div><span className="mini-tag">THIS MONTH</span></div>
@@ -354,10 +375,16 @@ export default function App() {
               <div className="decision-copy"><span className="eyebrow">BEFORE YOU BUY</span><h3>What will this cost your future self?</h3><p>Test a purchase first. See the ripple effect before spending a rupee.</p></div>
               <button className="primary-btn" onClick={() => setShowSim(true)}>Simulate a decision <span>↗</span></button>
             </section>
-            <section className="section-heading compact-heading">
-              <div><span className="section-index">02</span><h2>Recent moves</h2><p>Every rupee leaves a footprint.</p></div>
-              <button className="text-button" onClick={() => setShowAdd(true)}>＋ Add expense</button>
-            </section>
+            
+<SectionHeading
+  index="02"
+  title="Recent moves"
+  description="Every rupee leaves a footprint."
+  actionLabel="＋ Add expense"
+  onAction={() => setShowAdd(true)}
+  className="compact-heading"
+/>
+
             <section className="panel transactions-panel">
               {expenses.slice(0, 4).map(expense => <div className="transaction-row" key={expense.id}><div className="transaction-icon">{expense.icon || '💸'}</div><div className="transaction-info"><strong>{expense.name}</strong><small>{expense.category} · {dayLabel(expense.day)}</small></div><span className="transaction-amount">−{money(expense.amount)}</span><button className="remove-btn" onClick={() => setExpenses(current => current.filter(item => item.id !== expense.id))}>Remove</button></div>)}
               {!expenses.length && <div className="empty-state">Your next money move starts here.</div>}
