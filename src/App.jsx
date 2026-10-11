@@ -4,7 +4,7 @@ import './App.css'
 
 import SectionHeading from './components/SectionHeading'
 
-import Overview from './components/dashboard/Overview'
+
 
 import { money, dayLabel } from './utils/formatters'
 
