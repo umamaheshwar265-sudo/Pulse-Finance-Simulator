@@ -2,12 +2,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
-const initialExpenses = [
-  { id: 1, name: 'Groceries', category: 'Food', amount: 850, day: 2, icon: '🥑' },
-  { id: 2, name: 'Metro & travel', category: 'Transport', amount: 420, day: 3, icon: '🚇' },
-  { id: 3, name: 'Spotify Premium', category: 'Subscriptions', amount: 119, day: 4, icon: '🎧' },
-  { id: 4, name: 'Coffee & snacks', category: 'Food', amount: 240, day: 5, icon: '☕' },
-]
+const initialExpenses = []
+const [day, setDay] = useState(1)
 
 const initialBills = [
   { id: 101, name: 'Mobile recharge', amount: 299, day: 8, paid: false },
@@ -24,7 +20,7 @@ function App() {
   const [bills, setBills] = useState(initialBills)
   const [savings, setSavings] = useState(1500)
   const [goal, setGoal] = useState(3000)
-  const [day, setDay] = useState(6)
+  const [day, setDay] = useState(1)
   const [page, setPage] = useState('Overview')
   const [showAdd, setShowAdd] = useState(false)
   const [showSim, setShowSim] = useState(false)
@@ -137,7 +133,7 @@ function App() {
     setBills(initialBills)
     setSavings(1500)
     setGoal(3000)
-    setDay(6)
+    setDay(1)
     setSimApplied(false)
     try { localStorage.removeItem('pulse-finance-v1') } catch {}
     notify('Demo reset to the original ₹10,000 budget')
