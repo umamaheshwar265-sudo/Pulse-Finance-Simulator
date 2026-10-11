@@ -10,6 +10,22 @@ const initialBills = [
 ]
 const categories = ['Food', 'Transport', 'Shopping', 'Bills', 'Subscriptions', 'Other']
 const categoryColors = ['#c5ff63', '#65d9ca', '#9e8bff', '#ff9e70', '#72b8ff', '#a7adb8']
+const accentPalettes = [
+  { id: 'lime', name: 'Lime', hex: '#c5ff63' },
+  { id: 'blue', name: 'Ocean blue', hex: '#66c8ff' },
+  { id: 'purple', name: 'Purple', hex: '#b7a0ff' },
+  { id: 'pink', name: 'Pink', hex: '#ff8fb8' },
+  { id: 'orange', name: 'Orange', hex: '#ffb86b' },
+  { id: 'teal', name: 'Teal', hex: '#5be0c1' },
+]
+function readAccent() {
+  try {
+    const saved = localStorage.getItem('pulse-accent')
+    return accentPalettes.some(palette => palette.id === saved) ? saved : 'lime'
+  } catch {
+    return 'lime'
+  }
+}
 const money = value => '₹' + Math.round(Number(value) || 0).toLocaleString('en-IN')
 const dayLabel = value => `Day ${value}`
 
@@ -24,6 +40,15 @@ function readSavedData() {
 
 export default function App() {
   const [page, setPage] = useState('Overview')
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('pulse-theme') === 'light' ? 'light' : 'dark'
+    } catch {
+      return 'dark'
+    }
+  })
+  const [accent, setAccent] = useState(readAccent)
+  const [showPalette, setShowPalette] = useState(false)
   const [budget] = useState(10000)
   const [expenses, setExpenses] = useState(() => readSavedData()?.expenses ?? initialExpenses)
   const [bills, setBills] = useState(() => readSavedData()?.bills ?? initialBills)
@@ -67,6 +92,26 @@ export default function App() {
       // The app still works for this session if browser storage is unavailable.
     }
   }, [expenses, bills, savings, goal, day])
+
+  // Remember the selected appearance without changing finance-demo data.
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    try {
+      localStorage.setItem('pulse-theme', theme)
+    } catch {
+      // Theme still works for this session if storage is unavailable.
+    }
+  }, [theme])
+
+  // Keep the chosen accent color across refreshes, independent of finance data.
+  useEffect(() => {
+    document.documentElement.dataset.accent = accent
+    try {
+      localStorage.setItem('pulse-accent', accent)
+    } catch {
+      // Accent selection still works for this session if storage is unavailable.
+    }
+  }, [accent])
 
   function notify(message) {
     setToast(message)
@@ -185,6 +230,44 @@ export default function App() {
           <div className="top-actions">
             <span className="live-indicator"><i /> LIVE SIMULATION</span>
             <button className="icon-btn" onClick={() => notify('You’re all caught up!')} aria-label="Notifications">♧</button>
+            <div className="color-picker">
+              <button
+                className="color-picker-trigger"
+                onClick={() => setShowPalette(current => !current)}
+                aria-label="Choose accent color"
+                aria-expanded={showPalette}
+                aria-haspopup="true"
+                title="Customize accent color"
+              >
+                <span className="color-preview" aria-hidden="true" />
+                <span>Colors</span>
+                <span className="picker-chevron" aria-hidden="true">⌄</span>
+              </button>
+              {showPalette && <div className="color-palette" role="group" aria-label="Accent color choices">
+                <span className="palette-title">CHOOSE YOUR COLOR</span>
+                <div className="color-swatches">
+                  {accentPalettes.map(palette => <button
+                    key={palette.id}
+                    className={accent === palette.id ? 'color-swatch selected' : 'color-swatch'}
+                    style={{ '--swatch-color': palette.hex }}
+                    onClick={() => { setAccent(palette.id); setShowPalette(false); notify(`${palette.name} theme color applied`) }}
+                    aria-label={`${palette.name} accent color`}
+                    aria-pressed={accent === palette.id}
+                    title={palette.name}
+                  >{accent === palette.id ? '✓' : ''}</button>)}
+                </div>
+                <div className="palette-current">Selected: <strong>{accentPalettes.find(palette => palette.id === accent)?.name || 'Lime'}</strong></div>
+              </div>}
+            </div>
+            <button
+              className="theme-toggle"
+              onClick={() => setTheme(current => current === 'dark' ? 'light' : 'dark')}
+              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+              title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            >
+              <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
+              <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+            </button>
             <div className="date-pill">◷ &nbsp; OCTOBER · DAY {day}</div>
           </div>
         </header>
@@ -257,10 +340,10 @@ export default function App() {
                 <div className="chart">
                   <div className="chart-labels"><span>₹10K</span><span>₹5K</span><span>₹0</span></div>
                   <svg viewBox="0 0 440 140" preserveAspectRatio="none" role="img" aria-label="Projected balance chart">
-                    <defs><linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#c5ff63" stopOpacity=".24" /><stop offset="100%" stopColor="#c5ff63" stopOpacity="0" /></linearGradient></defs>
+                    <defs><linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="var(--accent)" stopOpacity=".24" /><stop offset="100%" stopColor="var(--accent)" stopOpacity="0" /></linearGradient></defs>
                     {[15, 65, 115].map(y => <line key={y} x1="0" x2="440" y1={y} y2={y} stroke="#293135" strokeDasharray="4 5" />)}
                     <path d={`M 0 20 ${future.map((point, index) => `L ${index * 73.3} ${Math.max(15, 120 - (point.value / budget) * 105)}`).join(' ')} L 440 140 L 0 140 Z`} fill="url(#chartFill)" />
-                    <path d={`M 0 20 ${future.map((point, index) => `L ${index * 73.3} ${Math.max(15, 120 - (point.value / budget) * 105)}`).join(' ')}`} fill="none" stroke="#c5ff63" strokeWidth="2.5" strokeLinejoin="round" />
+                    <path d={`M 0 20 ${future.map((point, index) => `L ${index * 73.3} ${Math.max(15, 120 - (point.value / budget) * 105)}`).join(' ')}`} fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinejoin="round" />
                   </svg>
                 </div>
                 <div className="chart-footer"><span>NOW</span><span>DAY {Math.min(30, day + 4)}</span><span>DAY {Math.min(30, day + 12)}</span><span>DAY 30</span></div>
